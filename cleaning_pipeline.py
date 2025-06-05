@@ -1,4 +1,4 @@
-# pipeline.py
+# cleaning_pipeline.py
 
 import os
 import argparse
