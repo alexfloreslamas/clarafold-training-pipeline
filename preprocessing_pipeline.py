@@ -87,29 +87,28 @@ def run_preprocessing_pipeline(config):
 
 if __name__ == "__main__":
 
-    # IMPORTANT: Customize the config dictionary as needed:
+    # ⚠ Customize the config dictionary as needed:
 
     config = {
         # Stage 1 - Subsampling
-        'subsample_input': 'data/cleaned/archiveII',  # cleaned dataset dir
+        'subsample_input': 'data/cleaned/archiveII',
         'subsample_output': 'data/preprocessed/subsampled',
-        'subsample_count': 378,  # number of pairs per family
+        'subsample_count': 378,
 
-        # Stage 2 - Sequence length analysis (same output folder as Stage 1)
-        # No params needed
+        # Stage 2 - Sequence length analysis (uses same subsample_output)
 
         # Stage 3 - ProbKnot predictions
         'probknot_input': 'data/preprocessed/subsampled',
         'probknot_output': 'data/preprocessed/probknot_predictions',
-        'probknot_executable': 'ProbKnot',  # or full path to ProbKnot if not in PATH
+        'probknot_executable': 'ProbKnot',  # full path if needed
 
-        # Stage 4 - CT to DotBracket
+        # Stage 4 - ct2dot conversion
         'ct2dot_input': 'data/preprocessed/subsampled',
-        'ct2dot_output': 'data/preprocessed/dotbracket_gt',
+        'ct2dot_output': 'data/preprocessed/gt_dotbracket',
         'ct2dot_executable': 'ct2dot',  # full path if needed
 
         # Stage 5 - DotBracket encoding
-        'encode_input': 'data/preprocessed/dotbracket_gt',
+        'encode_input': 'data/preprocessed/gt_dotbracket',
         'encode_output': 'data/preprocessed/gt_code',
 
         # Stage 6 - Generate paired lists
@@ -134,8 +133,6 @@ if __name__ == "__main__":
         ],
         'merged_probknot_file': 'data/ArchiveII_probknot.txt',
         'merged_gt_file': 'data/ArchiveII_gt.txt',
-
-        # Stage 8 - Alignment check (files from Stage 7)
     }
 
     run_preprocessing_pipeline(config)

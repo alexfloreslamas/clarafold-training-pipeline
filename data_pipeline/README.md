@@ -1,84 +1,131 @@
 # ClaraFold data cleaning and preprocessing pipeline
 
-This repository provides the **data cleaning pipeline** used for preparing training data for ClaraFold — a transformer-based framework for RNA secondary structure prediction, including pseudoknots.
+This repository provides the **data preparation pipeline** used for training ClaraFold — a transformer-based framework for RNA secondary structure prediction, including pseudoknots.
 
 ---
 
 ## Pipeline overview
 
-The pipeline processes RNA sequence datasets to ensure high-quality, non-redundant, and biologically consistent data for model training.
+The ClaraFold pipeline prepares RNA secondary structure data for training by combining two main stages:
 
-The cleaning stages include:
+### Cleaning Stage
+Removes low-quality or redundant data:
+1. **Remove N from `.ct` files**: Filters out `.ct` files where column 2 contains ambiguous nucleotides (`N`).
+2. **Remove N from `.seq` files**: Filters out `.seq` files where the RNA sequence contains any `N`.
+3. **Remove duplicate sequences**: Detects and removes duplicate `.seq` entries.
+4. **Subunit filtering**: Identifies sequences that are subunits of longer molecules and separates them.
 
-1. **Remove N from `.ct` files**  
-   Filters out `.ct` files where column 2 contains ambiguous nucleotides (`N`).
+### Preprocessing Stage
+Transforms clean RNA data into inputs suitable for ClaraFold's transformer-based model:
+1. **Subsample .ct/.seq pairs** from each family for training.
+2. **Analyze sequence lengths** to understand data distribution.
+3. **Predict secondary structures** using the ProbKnot tool.
+4. **Convert `.ct` to dot-bracket** notation.
+5. **Encode sequences** into ClaraFold's 28-symbol extended alphabet.
+6. **Generate aligned training lists** for model input/output.
+7. **Merge families** into unified training files.
+8. **Validate alignment** of input/output pairs.
 
-2. **Remove N from `.seq` files**  
-   Filters out `.seq` files where the actual RNA sequence contains any `N`.
-
-3. **Remove duplicate sequences**  
-   Identifies and removes exact duplicates across `.seq` files, retaining one representative per duplicate group.
-
-4. **Subunit Filtering**  
-   Detects sub-sequences contained within longer sequences. Subunits, full molecules, and clean unique sequences are separated into independent folders.
+> Note: Steps 3 and 4 require external tools from the RNAstructure suite (`ProbKnot` and `ct2dot`).
 
 ---
 
 ## Directory Structure
+
 ```bash
 clarafold-training-pipeline/
 ├── data
 │   ├── ArchiveII_gt.txt
 │   ├── ArchiveII_probknot.txt
-│   ├── cleaned
-│   └── raw                                 # Place your raw datasets here
-│       ├── archiveII
-│       └── RNAStrAlign
-├── data_pipeline                           # Full pipeline code
-│   ├── cleaning
+│   ├── cleaned/
+│   └── raw/
+│       ├── archiveII/
+│       └── RNAStrAlign/
+├── data_pipeline/
+│   ├── cleaning/
 │   │   ├── remove_duplicate_sequences.py
 │   │   ├── remove_n_in_seq.py
 │   │   ├── remove_n.py
 │   │   └── subunit_filter.py
-│   ├── preprocessing
-│   │   ├── build_vocab.py
-│   │   ├── encode_labels.py
-│   │   ├── other_preprocessing_stage.py
-│   │   └── tokenize_sequences.py
-│   └── README.md                           # Data cleaning README file
-├── notebook
+│   ├── preprocessing/
+│   │   ├── subsample_pairs.py
+│   │   ├── analyze_sequence_lengths.py
+│   │   ├── probknot_prediction.py
+│   │   ├── ct2dot_conversion.py
+│   │   ├── encode_dotbracket.py
+│   │   ├── generate_training_lists.py
+│   │   ├── final_merge_families.py
+│   │   └── validate_alignment.py
+│   └── README.md
+├── notebook/
 │   └── ClaraFoldTraining.ipynb
-├── pipeline.py                             # Master script to run the full cleaning pipeline
-└── README.md                               # General README file
+├── cleaning_pipeline.py
+├── preprocessing_pipeline.py
+└── README.md
 ```
 
+---
 
-## Usage
+## Running the Cleaning Pipeline
 
-1. **Prepare your input data**
-    Place your datasets inside the `data/raw/`. The pipeline expects .seq and .ct files inside these folders.
-2. **Install requirements**
-   This pipeline uses only the Python standard library — no external dependencies are required for the cleaning stage.
+1. **Prepare your input data**  
+   Place your datasets inside the `data/raw/` directory. The pipeline expects `.seq` and `.ct` files.
+
+2. **Install requirements**  
+   Only Python standard libraries are used — no external dependencies required.
+
 3. **Run the pipeline**
    ```bash
-   python pipeline.py -i <input_dir> -o <output_dir>
+   python cleaning_pipeline.py -i <input_dir> -o <output_dir>
    ```
-   **Example:**
+   Example:
    ```bash
-   python pipeline.py -i data/raw/archiveII -o data/cleaned/archiveII
+   python cleaning_pipeline.py -i data/raw/archiveII -o data/cleaned/archiveII
    ```
-4. The cleaned data will be generated inside:
+
+4. **Results**  
+   The cleaned data will appear under:
    ```bash
    data/cleaned/
    ```
-   Each stage will store intermediate results under:
-   - `data/cleaned/stage1_remove_n/`
-   - `data/cleaned/stage2_remove_n_in_seq/`
-   - `data/cleaned/stage3_remove_duplicates/`
-   - `data/cleaned/stage4_subunit_filter/`
+   Intermediate folders:
+   - `stage1_remove_n/`
+   - `stage2_remove_n_in_seq/`
+   - `stage3_remove_duplicates/`
+   - `stage4_subunit_filter/`
+
+---
+
+## Running the Preprocessing Pipeline
+
+1. **Customize the configuration** in `preprocessing_pipeline.py`. Update the `config` dictionary at the bottom to match your paths and preferences.
+
+2. **Run the pipeline**
+   ```bash
+   python preprocessing_pipeline.py
+   ```
+
+3. **Results**
+   Intermediate outputs will be stored under:
+   ```bash
+   data/preprocessed/
+   ```
+
+   Including:
+   - Subsampled pairs
+   - ProbKnot predictions
+   - Dot-bracket files
+   - Encoded sequences
+   - Final training lists
+
+
+---
 
 ## Related Repository
+
 > The core ClaraFold inference framework is available here: https://github.com/iglabari/ClaraFold
+
+---
 
 ## Contact
 
